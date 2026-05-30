@@ -1,0 +1,12 @@
+name: Customer_Churn_Prediction
+
+# If you use conda, point to your environment.yml. 
+# Since we are focusing on getting it done quickly, we can use the local system environment.
+environment: local
+
+entry_points:
+  main:
+    parameters:
+      n_estimators: {type: int, default: 100}
+      max_depth: {type: int, default: 5}
+    command: "python src/train.py --n_estimators {n_estimators} --max_depth {max_depth}"

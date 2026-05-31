@@ -47,6 +47,7 @@ MODEL_PATH: Path = MODELS_DIR / "lgbm_churn_model.txt"  # LightGBM native format
 # ---------------------------------------------------------------------------
 REPORTS_DIR: Path = PROJECT_ROOT / "reports"
 FIGURES_DIR: Path = REPORTS_DIR / "figures"
+XAI_FIGURES_DIR: Path = FIGURES_DIR / "xai"
 
 # ---------------------------------------------------------------------------
 # Dataset schema
@@ -138,5 +139,13 @@ RANDOM_STATE: int = 42
 # ---------------------------------------------------------------------------
 # Ensure output directories exist at import time
 # ---------------------------------------------------------------------------
-for _dir in (RAW_DIR, INTERIM_DIR, PROCESSED_DIR, EXTERNAL_DIR, MODELS_DIR, FIGURES_DIR):
+for _dir in (
+    RAW_DIR,
+    INTERIM_DIR,
+    PROCESSED_DIR,
+    EXTERNAL_DIR,
+    MODELS_DIR,
+    FIGURES_DIR,
+    XAI_FIGURES_DIR,
+):
     _dir.mkdir(parents=True, exist_ok=True)

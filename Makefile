@@ -1,4 +1,4 @@
-.PHONY: all data features train predict plots clean lint format pylint test docs help
+.PHONY: all data features train predict plots xai clean lint format pylint test docs help
 
 # -------------------------------------------------------------------
 # Variables
@@ -33,6 +33,9 @@ predict:   ## Step 4 – Run inference → data/processed/predictions.csv
 plots:     ## Step 5 – Generate all figures → reports/figures/
 	$(PYTHON) -m $(PKG).plots
 
+xai:       ## Step 6 – Generate SHAP XAI outputs → reports/figures/xai/
+	$(PYTHON) -m $(PKG).explainability --mode all --point-index 0
+
 # -------------------------------------------------------------------
 # Code quality
 # -------------------------------------------------------------------
@@ -60,6 +63,7 @@ docs:      ## Build Sphinx HTML documentation
 # -------------------------------------------------------------------
 clean:     ## Remove all generated data, models and figures
 	rm -f data/interim/*.csv data/processed/*.csv models/*.txt reports/figures/*.png
+	rm -f reports/figures/xai/*.png reports/figures/xai/*.html
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true
 	find . -name "*.pyc" -delete 2>/dev/null; true
 

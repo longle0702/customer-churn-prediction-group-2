@@ -1,0 +1,1 @@
+# Keep the XAI output directory in Git. Generated SHAP PNG/HTML artefacts belong here.

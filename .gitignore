@@ -47,6 +47,10 @@ data/processed/*.csv
 data/interim/*.csv
 models/*.txt
 reports/figures/*.png
+!reports/figures/xai/
+!reports/figures/xai/.gitkeep
+!reports/figures/xai/*.png
+!reports/figures/xai/*.html
 
 # Docs build
 docs/_build/

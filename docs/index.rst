@@ -9,6 +9,7 @@ following the Cookiecutter Data Science project structure.
    :caption: Contents
 
    api/modules
+   xai
 
 Getting Started
 ---------------
@@ -21,6 +22,13 @@ Install the conda environment::
 Run the full pipeline::
 
    make all
+
+Generate Part 3 SHAP explainability outputs::
+
+   make xai
+
+The SHAP implementation is available in ``customer_churn.explainability`` and
+writes global and local explanation artefacts to ``reports/figures/xai/``.
 
 Run the test suite::
 

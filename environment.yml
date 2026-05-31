@@ -14,6 +14,7 @@ dependencies:
   # ── Machine learning ───────────────────────────────────────────────────────
   - scikit-learn=1.7.2
   - lightgbm=4.6.0
+  - shap
 
   # ── Visualisation ──────────────────────────────────────────────────────────
   - matplotlib=3.10.9

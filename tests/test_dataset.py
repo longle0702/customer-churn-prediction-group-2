@@ -11,9 +11,10 @@ import pandas as pd
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PROJECT_ROOT))
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-from customer_churn.dataset import clean
+from customer_churn.dataset import clean  # noqa: E402
 
 
 @pytest.fixture()
@@ -21,7 +22,7 @@ def raw_df() -> pd.DataFrame:
     """Minimal raw DataFrame mimicking the Excel source."""
     return pd.DataFrame(
         {
-            "CustomerID": [50001, 50002, 50002],   # row 1 and 2 are duplicates
+            "CustomerID": [50001, 50002, 50002],  # duplicate row
             "Churn": [1, 0, 0],
             "Tenure": [4.0, None, None],
             "PreferredLoginDevice": [" Mobile Phone ", "Computer", "Computer"],

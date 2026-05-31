@@ -1,4 +1,4 @@
-.PHONY: all data features train predict plots clean lint format test docs help
+.PHONY: all data features train predict plots clean lint format pylint test docs help
 
 # -------------------------------------------------------------------
 # Variables
@@ -42,6 +42,9 @@ lint:      ## Check PEP 8 compliance with flake8
 format:    ## Auto-format with black
 	black $(PKG)/ tests/
 
+pylint:    ## Run pylint static analysis
+	pylint $(PKG)/
+
 test:      ## Run the pytest test suite
 	pytest tests/ -v --cov=$(PKG) --cov-report=term-missing
 
@@ -49,6 +52,7 @@ test:      ## Run the pytest test suite
 # Documentation
 # -------------------------------------------------------------------
 docs:      ## Build Sphinx HTML documentation
+	sphinx-apidoc -o docs/api/ $(PKG)/ --force --module-first -e -q
 	sphinx-build -b html docs/ docs/_build/html
 
 # -------------------------------------------------------------------

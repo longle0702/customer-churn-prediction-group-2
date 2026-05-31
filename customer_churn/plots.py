@@ -43,7 +43,7 @@ from customer_churn.config import (
     TARGET_PATH,
 )
 
-matplotlib.use("Agg")   # non-interactive backend (safe for headless runs)
+matplotlib.use("Agg")  # non-interactive backend (safe for headless runs)
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -58,16 +58,17 @@ logger = logging.getLogger(__name__)
 # Style
 # ---------------------------------------------------------------------------
 PALETTE = {
-    "primary":   "#4F46E5",   # indigo
-    "secondary": "#F97316",   # orange
-    "neutral":   "#6B7280",
-    "bg":        "#F9FAFB",
+    "primary": "#4F46E5",  # indigo
+    "secondary": "#F97316",  # orange
+    "neutral": "#6B7280",
+    "bg": "#F9FAFB",
 }
 
 
 # ---------------------------------------------------------------------------
 # Individual plot functions
 # ---------------------------------------------------------------------------
+
 
 def plot_churn_distribution(
     y: pd.Series,
@@ -85,14 +86,15 @@ def plot_churn_distribution(
         ["Retained (0)", "Churned (1)"],
         counts.values,
         color=[PALETTE["primary"], PALETTE["secondary"]],
-        edgecolor="white"
+        edgecolor="white",
     )
     for bar, count in zip(bars, counts.values):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
             bar.get_height() + 30,
             f"{count:,}\n({count / len(y) * 100:.1f}%)",
-            ha="center", va="bottom",
+            ha="center",
+            va="bottom",
         )
     ax.set_title("Churn Class Distribution", pad=14)
     ax.set_ylabel("Number of Customers")
@@ -117,10 +119,14 @@ def plot_feature_importance(
         top_n:       Number of top features to display.
         output_path: Destination PNG file.
     """
-    importance = pd.Series(
-        booster.feature_importance(importance_type="gain"),
-        index=booster.feature_name(),
-    ).sort_values(ascending=True).tail(top_n)
+    importance = (
+        pd.Series(
+            booster.feature_importance(importance_type="gain"),
+            index=booster.feature_name(),
+        )
+        .sort_values(ascending=True)
+        .tail(top_n)
+    )
 
     fig, ax = plt.subplots(figsize=(8, max(4, top_n * 0.45)), facecolor=PALETTE["bg"])
     ax.barh(importance.index, importance.values, color=PALETTE["primary"], edgecolor="white")
@@ -200,9 +206,7 @@ def plot_precision_recall_curve(
         output_path: Destination PNG file.
     """
     fig, ax = plt.subplots(figsize=(6, 5), facecolor=PALETTE["bg"])
-    PrecisionRecallDisplay.from_predictions(
-        y_true, y_prob, ax=ax, color=PALETTE["secondary"]
-    )
+    PrecisionRecallDisplay.from_predictions(y_true, y_prob, ax=ax, color=PALETTE["secondary"])
     ax.set_title("Precision-Recall Curve", pad=12)
     ax.set_facecolor(PALETTE["bg"])
     ax.spines[["top", "right"]].set_visible(False)
@@ -216,6 +220,7 @@ def plot_precision_recall_curve(
 # ---------------------------------------------------------------------------
 # CLI entry point – generate all plots at once
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     """Generate all project figures.

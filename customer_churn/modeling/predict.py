@@ -28,7 +28,6 @@ import time
 from pathlib import Path
 
 import lightgbm as lgb
-import numpy as np
 import pandas as pd
 from sklearn.metrics import (
     accuracy_score,
@@ -58,6 +57,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def load_model(model_path: Path = MODEL_PATH) -> lgb.Booster:
     """Load a saved LightGBM model from disk.
@@ -132,7 +132,9 @@ def predict(
 
     logger.info(
         "Inference  %d samples | total=%.2f ms | per-sample=%.4f ms",
-        n, total_ms, per_sample_ms,
+        n,
+        total_ms,
+        per_sample_ms,
     )
 
     y_pred = (y_prob >= threshold).astype(int)
@@ -142,7 +144,7 @@ def predict(
     return pd.DataFrame(
         {
             "churn_probability": y_prob,
-            "churn_prediction":  y_pred,
+            "churn_prediction": y_pred,
             "inference_time_ms": per_sample_ms,
         }
     )
@@ -173,11 +175,11 @@ def evaluate_predictions(
     y_prob = results["churn_probability"].values
 
     metrics = {
-        "accuracy":                 accuracy_score(y_true, y_pred),
-        "precision":                precision_score(y_true, y_pred, zero_division=0),
-        "recall":                   recall_score(y_true, y_pred, zero_division=0),
-        "f1_score":                 f1_score(y_true, y_pred, zero_division=0),
-        "roc_auc":                  roc_auc_score(y_true, y_prob),
+        "accuracy": accuracy_score(y_true, y_pred),
+        "precision": precision_score(y_true, y_pred, zero_division=0),
+        "recall": recall_score(y_true, y_pred, zero_division=0),
+        "f1_score": f1_score(y_true, y_pred, zero_division=0),
+        "roc_auc": roc_auc_score(y_true, y_prob),
         "inference_time_ms_sample": results["inference_time_ms"].iloc[0],
     }
 
@@ -209,14 +211,17 @@ def save_predictions(
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Run churn inference on a prepared feature CSV."
+    parser = argparse.ArgumentParser(description="Run churn inference on a prepared feature CSV.")
+    parser.add_argument("--model", type=Path, default=MODEL_PATH, help="Path to .txt model file")
+    parser.add_argument("--input", type=Path, default=FEATURES_PATH, help="Input features CSV")
+    parser.add_argument(
+        "--output", type=Path, default=PREDICTIONS_PATH, help="Output predictions CSV"
     )
-    parser.add_argument("--model",     type=Path, default=MODEL_PATH,       help="Path to .txt model file")
-    parser.add_argument("--input",     type=Path, default=FEATURES_PATH,    help="Input features CSV")
-    parser.add_argument("--output",    type=Path, default=PREDICTIONS_PATH, help="Output predictions CSV")
-    parser.add_argument("--threshold", type=float, default=0.5,             help="Probability threshold (default 0.5)")
+    parser.add_argument(
+        "--threshold", type=float, default=0.5, help="Probability threshold (default 0.5)"
+    )
     return parser.parse_args()
 
 

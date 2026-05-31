@@ -19,7 +19,6 @@ Usage::
 import logging
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
@@ -48,6 +47,7 @@ logger = logging.getLogger(__name__)
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def load_interim(path: Path = INTERIM_CSV) -> pd.DataFrame:
     """Load the interim (cleaned) dataset.
 
@@ -62,8 +62,7 @@ def load_interim(path: Path = INTERIM_CSV) -> pd.DataFrame:
     """
     if not path.exists():
         raise FileNotFoundError(
-            f"Interim dataset not found: {path}\n"
-            "Run `python -m customer_churn.dataset` first."
+            f"Interim dataset not found: {path}\n" "Run `python -m customer_churn.dataset` first."
         )
     df = pd.read_csv(path)
     logger.info("Loaded interim data: %d rows × %d columns", *df.shape)
@@ -175,6 +174,7 @@ def save_features(X: pd.DataFrame, y: pd.Series) -> None:
 # ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     """Entry point invoked by ``python -m customer_churn.features`` or ``make features``."""

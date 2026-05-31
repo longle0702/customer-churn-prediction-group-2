@@ -8,6 +8,7 @@ without hard-coding strings in individual scripts.
 """
 
 import platform
+import subprocess
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -39,7 +40,7 @@ PREDICTIONS_PATH: Path = PROCESSED_DIR / "predictions.csv"
 # Model directory
 # ---------------------------------------------------------------------------
 MODELS_DIR: Path = PROJECT_ROOT / "models"
-MODEL_PATH: Path = MODELS_DIR / "lgbm_churn_model.txt"   # LightGBM native format
+MODEL_PATH: Path = MODELS_DIR / "lgbm_churn_model.txt"  # LightGBM native format
 
 # ---------------------------------------------------------------------------
 # Reports
@@ -77,6 +78,7 @@ CATEGORICAL_COLS: list[str] = [
     "MaritalStatus",
 ]
 
+
 # ---------------------------------------------------------------------------
 # GPU / device detection
 # ---------------------------------------------------------------------------
@@ -84,23 +86,20 @@ def _detect_device() -> str:
     """Auto-detect the best available device for LightGBM.
 
     Returns:
-        ``"gpu"``  – when an NVIDIA GPU is available (CUDA).
-        ``"gpu"``  – when running on Apple Silicon (OpenCL via Metal).
-        ``"cpu"``  – fallback.
+        ``"gpu"``  when an NVIDIA GPU is available (CUDA).
+        ``"gpu"``  when running on Apple Silicon (OpenCL via Metal).
+        ``"cpu"``  fallback.
     """
     system = platform.system()
     machine = platform.machine()
 
-    # Apple Silicon (arm64 Darwin) → try OpenCL GPU via LightGBM
+    # Apple Silicon (arm64 Darwin) -> try OpenCL GPU via LightGBM
     if system == "Darwin" and machine == "arm64":
         return "gpu"
 
     # NVIDIA GPU (Linux / Windows with CUDA)
     try:
-        import subprocess
-        result = subprocess.run(
-            ["nvidia-smi"], capture_output=True, text=True, timeout=3
-        )
+        result = subprocess.run(["nvidia-smi"], capture_output=True, text=True, timeout=3)
         if result.returncode == 0:
             return "gpu"
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -124,7 +123,7 @@ LGBM_PARAMS: dict = {
     "bagging_fraction": 0.8,
     "bagging_freq": 5,
     "min_child_samples": 20,
-    "scale_pos_weight": 4,          # handles class imbalance (≈ 83 % vs 17 %)
+    "scale_pos_weight": 4,  # handles class imbalance (~83% vs 17%)
     "n_estimators": 500,
     "early_stopping_rounds": 50,
     "verbosity": -1,

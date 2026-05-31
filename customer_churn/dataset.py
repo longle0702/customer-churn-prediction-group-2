@@ -23,7 +23,6 @@ from pathlib import Path
 import pandas as pd
 
 from customer_churn.config import (
-    CATEGORICAL_COLS,
     EXCEL_PATH,
     ID_COLUMN,
     INTERIM_CSV,
@@ -44,6 +43,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def load_raw(excel_path: Path = EXCEL_PATH, sheet_name: str = SHEET_NAME) -> pd.DataFrame:
     """Load the raw dataset from the Excel workbook stored in ``data/raw/``.
@@ -140,6 +140,7 @@ def make_dataset(
 # ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     """Entry point invoked by ``python -m customer_churn.dataset`` or ``make data``."""

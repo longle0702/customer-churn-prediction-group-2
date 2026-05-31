@@ -11,15 +11,20 @@ import pandas as pd
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PROJECT_ROOT))
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-from customer_churn.features import build_features, encode_categoricals, impute
-from customer_churn.config import CATEGORICAL_COLS, NUMERICAL_COLS
+from customer_churn.config import CATEGORICAL_COLS, NUMERICAL_COLS  # noqa: E402
+from customer_churn.features import (  # noqa: E402
+    build_features,
+    encode_categoricals,
+    impute,
+)
 
 
 @pytest.fixture()
 def interim_df() -> pd.DataFrame:
-    """Minimal interim DataFrame with missing values."""
+    """Small DataFrame with missing values in numerical and categorical columns."""
     return pd.DataFrame(
         {
             "CustomerID": ["50001", "50002", "50003"],

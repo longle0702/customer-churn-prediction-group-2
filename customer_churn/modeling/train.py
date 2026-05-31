@@ -40,7 +40,6 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 
 from customer_churn.config import (
-    DEVICE,
     FEATURES_PATH,
     LGBM_PARAMS,
     MODEL_PATH,
@@ -63,6 +62,7 @@ logger = logging.getLogger(__name__)
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def load_features(
     features_path: Path = FEATURES_PATH,
     target_path: Path = TARGET_PATH,
@@ -82,8 +82,7 @@ def load_features(
     for p in (features_path, target_path):
         if not p.exists():
             raise FileNotFoundError(
-                f"Required file not found: {p}\n"
-                "Run `python -m customer_churn.features` first."
+                f"Required file not found: {p}\n" "Run `python -m customer_churn.features` first."
             )
     X = pd.read_csv(features_path)
     y = pd.read_csv(target_path).squeeze()
@@ -113,7 +112,9 @@ def split(
     )
     logger.info(
         "Train: %d samples  |  Val: %d samples  (stratified, test_size=%.0f%%)",
-        len(X_train), len(X_val), test_size * 100,
+        len(X_train),
+        len(X_val),
+        test_size * 100,
     )
     return X_train, X_val, y_train, y_val
 
@@ -154,7 +155,8 @@ def train(
 
     logger.info(
         "Training LightGBM  device='%s'  n_estimators=%d …",
-        p.get("device", "cpu"), n_estimators,
+        p.get("device", "cpu"),
+        n_estimators,
     )
 
     callbacks = [
@@ -222,22 +224,22 @@ def evaluate(
     y_pred = (y_prob >= threshold).astype(int)
 
     metrics: dict[str, float] = {
-        "accuracy":                  accuracy_score(y_val, y_pred),
-        "precision":                 precision_score(y_val, y_pred, zero_division=0),
-        "recall":                    recall_score(y_val, y_pred, zero_division=0),
-        "f1_score":                  f1_score(y_val, y_pred, zero_division=0),
-        "roc_auc":                   roc_auc_score(y_val, y_prob),
-        "inference_time_ms_total":   round(inference_ms_total, 4),
-        "inference_time_ms_sample":  round(inference_ms_per_sample, 6),
+        "accuracy": accuracy_score(y_val, y_pred),
+        "precision": precision_score(y_val, y_pred, zero_division=0),
+        "recall": recall_score(y_val, y_pred, zero_division=0),
+        "f1_score": f1_score(y_val, y_pred, zero_division=0),
+        "roc_auc": roc_auc_score(y_val, y_prob),
+        "inference_time_ms_total": round(inference_ms_total, 4),
+        "inference_time_ms_sample": round(inference_ms_per_sample, 6),
     }
 
     logger.info("─" * 55)
     logger.info("Evaluation  (threshold=%.2f,  n=%d)", threshold, n_samples)
-    logger.info("  %-32s  %.4f", "Accuracy",  metrics["accuracy"])
+    logger.info("  %-32s  %.4f", "Accuracy", metrics["accuracy"])
     logger.info("  %-32s  %.4f", "Precision", metrics["precision"])
-    logger.info("  %-32s  %.4f", "Recall",    metrics["recall"])
-    logger.info("  %-32s  %.4f", "F1-score",  metrics["f1_score"])
-    logger.info("  %-32s  %.4f", "ROC-AUC",   metrics["roc_auc"])
+    logger.info("  %-32s  %.4f", "Recall", metrics["recall"])
+    logger.info("  %-32s  %.4f", "F1-score", metrics["f1_score"])
+    logger.info("  %-32s  %.4f", "ROC-AUC", metrics["roc_auc"])
     logger.info(
         "  %-32s  %.4f ms total  (%.6f ms/sample)",
         "Inference time",
@@ -247,9 +249,7 @@ def evaluate(
     logger.info("─" * 55)
     logger.info(
         "\nClassification report:\n%s",
-        classification_report(
-            y_val, y_pred, target_names=["No Churn", "Churn"], zero_division=0
-        ),
+        classification_report(y_val, y_pred, target_names=["No Churn", "Churn"], zero_division=0),
     )
     return metrics
 
@@ -269,6 +269,7 @@ def save_model(booster: lgb.Booster, model_path: Path = MODEL_PATH) -> None:
 # ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     """End-to-end training pipeline."""

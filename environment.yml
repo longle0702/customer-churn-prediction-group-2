@@ -1,0 +1,39 @@
+name: churn_project
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.10.20
+
+  # ── Core data science ──────────────────────────────────────────────────────
+  - pandas=2.3.3
+  - numpy=1.26.4
+  - openpyxl=3.1.5
+
+  # ── Machine learning ───────────────────────────────────────────────────────
+  - scikit-learn=1.7.2
+  - lightgbm=4.6.0
+
+  # ── Visualisation ──────────────────────────────────────────────────────────
+  - matplotlib=3.10.9
+
+  # ── Configuration ──────────────────────────────────────────────────────────
+  - pyyaml=6.0.3
+
+  # ── Code quality ───────────────────────────────────────────────────────────
+  - flake8=7.3.0
+  - black=24.10.0
+
+  # ── Testing ────────────────────────────────────────────────────────────────
+  - pytest=8.4.2
+  - pytest-cov=5.0.0
+
+  # ── Documentation ──────────────────────────────────────────────────────────
+  - sphinx=7.4.7
+
+  # ── pip-only packages (not available in conda-forge) ───────────────────────
+  - pip
+  - pip:
+      - sphinx-rtd-theme==2.0.0
+      - pylint==4.0.5

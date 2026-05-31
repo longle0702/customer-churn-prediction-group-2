@@ -5,3 +5,4 @@ customer_churn
    :maxdepth: 4
 
    customer_churn
+   customer_churn.explainability

@@ -80,6 +80,7 @@ make features   # impute, encode, scale → data/processed/features.csv + target
 make train      # train LightGBM, print metrics
 make predict    # inference → data/processed/predictions.csv
 make plots      # generate all figures → reports/figures/
+make xai        # generate SHAP explainability outputs → reports/figures/xai/
 ```
 
 ### 3 – Run tests
@@ -92,6 +93,77 @@ make test
 make lint     # flake8
 make format   # black
 ```
+
+---
+
+## Part 3 — Explainable AI with SHAP
+
+Task 3 implements Explainable AI for the trained LightGBM churn model using
+[`shap.TreeExplainer`](https://shap.readthedocs.io/). The implementation is
+split according to the Jira tickets used by the group:
+
+| Jira ticket | Scope | Main deliverables |
+|-------------|-------|-------------------|
+| `KAN-9` | SHAP integration and global interpretation | TreeExplainer, Shapley values, global summary bar, beeswarm, mean SHAP plot |
+| `KAN-10` | Localized instance interpretability plots | Waterfall plot, force plot HTML, dependence plots for top features |
+| `KAN-11` | Unified report assembly and code sharing | README/report guidance, MLproject entry point, Makefile command, tracked XAI output folder |
+
+### Generate SHAP outputs
+
+Run the regular Part 2 pipeline first so that the processed features and model
+exist:
+
+```bash
+make data
+make features
+make train
+```
+
+Then generate all XAI artefacts:
+
+```bash
+make xai
+```
+
+Equivalent direct command:
+
+```bash
+python -m customer_churn.explainability \
+  --mode all \
+  --point-index 0 \
+  --max-samples 500 \
+  --top-n-dependence 3
+```
+
+Equivalent MLflow Project command:
+
+```bash
+mlflow run . --env-manager=local -e explain \
+  -P mode=all \
+  -P point_index=0 \
+  -P max_samples=500 \
+  -P top_n_dependence=3
+```
+
+Generated outputs are saved in:
+
+```text
+reports/figures/xai/
+├── shap_summary_bar_global.png
+├── shap_beeswarm_global.png
+├── shap_mean_global.png
+├── shap_waterfall_point_0.png
+├── shap_force_point_0.html
+└── shap_dependence_<feature>.png
+```
+
+### Suggested report text
+
+The report should explain that SHAP values quantify each feature's contribution
+to the LightGBM churn prediction. The global plots identify the features that
+drive churn predictions overall, while the local plots explain why a specific
+customer was predicted as high or low churn risk. These explanations describe
+model behaviour and should not be interpreted as causal business conclusions.
 
 ---
 

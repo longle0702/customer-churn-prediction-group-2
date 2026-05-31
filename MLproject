@@ -10,3 +10,16 @@ entry_points:
       n_estimators: {type: int, default: 100}
       max_depth: {type: int, default: 5}
     command: "python src/train.py --n_estimators {n_estimators} --max_depth {max_depth}"
+
+  explain:
+    parameters:
+      mode: {type: str, default: "all"}
+      point_index: {type: int, default: 0}
+      max_samples: {type: int, default: 500}
+      top_n_dependence: {type: int, default: 3}
+    command: >-
+      python -m customer_churn.explainability
+      --mode {mode}
+      --point-index {point_index}
+      --max-samples {max_samples}
+      --top-n-dependence {top_n_dependence}

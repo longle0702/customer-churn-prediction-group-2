@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "E-Commerce Customer Churn Prediction – AI Project Methodology (EPITA 2025-2026)"
 authors = [{ name = "Group 2" }]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10,<3.11"
 license = { text = "MIT" }
 keywords = ["churn", "classification", "lightgbm", "machine-learning"]
 

@@ -9,9 +9,15 @@ This module loads the trained LightGBM model and processed feature matrix,
 builds a :class:`shap.TreeExplainer`, computes SHAP values, and generates
 global model interpretation plots for the whole dataset.
 
+KAN-10 scope
+~~~~~~~~~~~~
+The same CLI can generate local explanations for one customer/row, including
+waterfall, force and dependence plots.
+
 Usage::
 
     python -m customer_churn.explainability --mode global
+    python -m customer_churn.explainability --mode local --point-index 0
 
 Outputs are written to ``reports/figures/xai/``.
 """
@@ -197,6 +203,123 @@ def save_mean_shap_plot(
     logger.info("Saved global mean SHAP plot → %s", output_path)
 
 
+def _prepare_explanation(
+    model_path: Path = MODEL_PATH,
+    features_path: Path = FEATURES_PATH,
+    max_samples: int = 500,
+) -> tuple[lgb.Booster, pd.DataFrame, shap.TreeExplainer, shap.Explanation]:
+    """Load model/data and compute reusable SHAP explanations.
+
+    Args:
+        model_path: Path to the trained LightGBM model.
+        features_path: Path to processed features.
+        max_samples: Maximum number of rows used for SHAP computation.
+
+    Returns:
+        Tuple of model, sampled features, explainer and SHAP explanation.
+    """
+    model = load_model(model_path)
+    features = sample_features(load_features(features_path), max_samples=max_samples)
+    explainer = build_tree_explainer(model)
+    explanation = compute_shap_explanation(explainer, features)
+    return model, features, explainer, explanation
+
+
+def _validate_point_index(point_index: int, features: pd.DataFrame) -> None:
+    """Validate that a local explanation row index is available.
+
+    Args:
+        point_index: Positional row index to explain.
+        features: Sampled feature matrix.
+
+    Raises:
+        IndexError: If ``point_index`` is outside the sampled feature matrix.
+    """
+    if point_index < 0 or point_index >= len(features):
+        raise IndexError(
+            f"point_index={point_index} is outside the explainable sample range "
+            f"[0, {len(features) - 1}]"
+        )
+
+
+def save_waterfall_plot(
+    explanation: shap.Explanation,
+    point_index: int = 0,
+    output_path: Path = XAI_FIGURES_DIR / "shap_waterfall_point_0.png",
+) -> None:
+    """Save a local waterfall plot for one customer/row.
+
+    Args:
+        explanation: SHAP explanation for all sampled rows.
+        point_index: Positional row index to explain.
+        output_path: Destination image path.
+    """
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    shap.plots.waterfall(explanation[point_index], show=False)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    logger.info("Saved local SHAP waterfall plot → %s", output_path)
+
+
+def save_force_plot(
+    explanation: shap.Explanation,
+    point_index: int = 0,
+    output_path: Path = XAI_FIGURES_DIR / "shap_force_point_0.html",
+) -> None:
+    """Save a local force plot as an interactive HTML file.
+
+    Args:
+        explanation: SHAP explanation for all sampled rows.
+        point_index: Positional row index to explain.
+        output_path: Destination HTML path.
+    """
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    shap.initjs()
+    force_plot = shap.plots.force(explanation[point_index], matplotlib=False)
+    shap.save_html(str(output_path), force_plot)
+    logger.info("Saved local SHAP force plot → %s", output_path)
+
+
+def save_dependence_plots(
+    explanation: shap.Explanation,
+    features: pd.DataFrame,
+    output_dir: Path = XAI_FIGURES_DIR,
+    top_n: int = 3,
+) -> list[Path]:
+    """Save dependence plots for the top global SHAP features.
+
+    Args:
+        explanation: SHAP explanation for all sampled rows.
+        features: Feature matrix used to compute the explanation.
+        output_dir: Directory where dependence plots are saved.
+        top_n: Number of top features to plot.
+
+    Returns:
+        Paths of generated dependence plots.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    values = np.asarray(explanation.values)
+    top_features = (
+        pd.Series(np.abs(values).mean(axis=0), index=features.columns)
+        .sort_values(ascending=False)
+        .head(top_n)
+        .index
+    )
+
+    outputs: list[Path] = []
+    for feature in top_features:
+        safe_feature_name = str(feature).replace("/", "_").replace(" ", "_")
+        output_path = output_dir / f"shap_dependence_{safe_feature_name}.png"
+        shap.dependence_plot(feature, values, features, show=False)
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=150, bbox_inches="tight")
+        plt.close()
+        logger.info("Saved SHAP dependence plot for '%s' → %s", feature, output_path)
+        outputs.append(output_path)
+    return outputs
+
+
 def generate_global_explanations(
     model_path: Path = MODEL_PATH,
     features_path: Path = FEATURES_PATH,
@@ -214,10 +337,7 @@ def generate_global_explanations(
     Returns:
         List of generated artefact paths.
     """
-    model = load_model(model_path)
-    features = sample_features(load_features(features_path), max_samples=max_samples)
-    explainer = build_tree_explainer(model)
-    explanation = compute_shap_explanation(explainer, features)
+    _, features, _, explanation = _prepare_explanation(model_path, features_path, max_samples)
 
     outputs = [
         output_dir / "shap_summary_bar_global.png",
@@ -230,27 +350,78 @@ def generate_global_explanations(
     return outputs
 
 
+def generate_local_explanations(
+    model_path: Path = MODEL_PATH,
+    features_path: Path = FEATURES_PATH,
+    output_dir: Path = XAI_FIGURES_DIR,
+    max_samples: int = 500,
+    point_index: int = 0,
+    top_n_dependence: int = 3,
+) -> list[Path]:
+    """Generate all KAN-10 local SHAP interpretation artefacts.
+
+    Args:
+        model_path: Path to the trained LightGBM model.
+        features_path: Path to processed features.
+        output_dir: Directory where SHAP plots are saved.
+        max_samples: Maximum number of rows used for SHAP computation.
+        point_index: Positional row index to explain locally.
+        top_n_dependence: Number of top features for dependence plots.
+
+    Returns:
+        List of generated artefact paths.
+    """
+    _, features, _, explanation = _prepare_explanation(model_path, features_path, max_samples)
+    _validate_point_index(point_index, features)
+
+    waterfall_path = output_dir / f"shap_waterfall_point_{point_index}.png"
+    force_path = output_dir / f"shap_force_point_{point_index}.html"
+    save_waterfall_plot(explanation, point_index=point_index, output_path=waterfall_path)
+    save_force_plot(explanation, point_index=point_index, output_path=force_path)
+    dependence_paths = save_dependence_plots(
+        explanation,
+        features,
+        output_dir=output_dir,
+        top_n=top_n_dependence,
+    )
+    return [waterfall_path, force_path, *dependence_paths]
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate SHAP explanations for the churn model.")
-    parser.add_argument("--mode", choices=["global"], default="global")
+    parser.add_argument("--mode", choices=["global", "local", "all"], default="global")
     parser.add_argument("--model", type=Path, default=MODEL_PATH)
     parser.add_argument("--features", type=Path, default=FEATURES_PATH)
     parser.add_argument("--output-dir", type=Path, default=XAI_FIGURES_DIR)
     parser.add_argument("--max-samples", type=int, default=500)
+    parser.add_argument("--point-index", type=int, default=0)
+    parser.add_argument("--top-n-dependence", type=int, default=3)
     return parser.parse_args()
 
 
 def main() -> None:
     """CLI entry point for SHAP explanations."""
     args = _parse_args()
-    if args.mode == "global":
+    outputs: list[Path] = []
+    if args.mode in {"global", "all"}:
         outputs = generate_global_explanations(
             model_path=args.model,
             features_path=args.features,
             output_dir=args.output_dir,
             max_samples=args.max_samples,
         )
-        logger.info("Generated %d global SHAP artefacts", len(outputs))
+    if args.mode in {"local", "all"}:
+        outputs.extend(
+            generate_local_explanations(
+                model_path=args.model,
+                features_path=args.features,
+                output_dir=args.output_dir,
+                max_samples=args.max_samples,
+                point_index=args.point_index,
+                top_n_dependence=args.top_n_dependence,
+            )
+        )
+    logger.info("Generated %d SHAP artefacts", len(outputs))
 
 
 if __name__ == "__main__":

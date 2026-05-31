@@ -1,0 +1,14 @@
+# MLflow local tracking outputs
+mlruns/
+mlflow.db
+.mlflow/
+
+# Python virtual environment and cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OS-specific files
+.DS_Store

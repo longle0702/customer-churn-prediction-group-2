@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "customer_churn"
+version = "0.1.0"
+description = "E-Commerce Customer Churn Prediction – AI Project Methodology (EPITA 2025-2026)"
+authors = [{ name = "Group 2" }]
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["churn", "classification", "lightgbm", "machine-learning"]
+
+dependencies = [
+    "pandas>=2.0,<3.0",
+    "numpy>=1.26,<2.0",
+    "openpyxl>=3.1,<4.0",
+    "scikit-learn>=1.4,<2.0",
+    "lightgbm>=4.0,<5.0",
+    "matplotlib>=3.8,<4.0",
+    "PyYAML>=6.0,<7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "flake8>=7.0,<8.0",
+    "black>=24.0,<25.0",
+    "pylint>=3.0,<4.0",
+    "pytest>=8.0,<9.0",
+    "pytest-cov>=5.0,<6.0",
+    "Sphinx>=7.0,<8.0",
+    "sphinx-rtd-theme>=2.0,<3.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["customer_churn*"]
+
+# ---------------------------------------------------------------------------
+# Black (code formatter)
+# ---------------------------------------------------------------------------
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+# ---------------------------------------------------------------------------
+# pylint
+# ---------------------------------------------------------------------------
+[tool.pylint.main]
+# Analyse only the source package
+source-roots = ["."]
+
+[tool.pylint.messages_control]
+max-line-length = 100
+# Disable rules that conflict with black or are too noisy for a data-science project
+disable = [
+    "C0114",  # missing-module-docstring  (already have module docstrings)
+    "C0116",  # missing-function-docstring (public functions are documented)
+    "R0903",  # too-few-public-methods
+    "R0801",  # duplicate-code
+    "W0212",  # protected-access
+]
+
+[tool.pylint.format]
+max-line-length = 100
+
+[tool.pylint.design]
+max-args = 8
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = "-v --tb=short"
+
+# ---------------------------------------------------------------------------
+# Coverage
+# ---------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["customer_churn"]
+omit   = ["tests/*"]
+

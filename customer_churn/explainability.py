@@ -275,7 +275,6 @@ def save_force_plot(
         output_path: Destination HTML path.
     """
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    shap.initjs()
     force_plot = shap.plots.force(explanation[point_index], matplotlib=False)
     shap.save_html(str(output_path), force_plot)
     logger.info("Saved local SHAP force plot → %s", output_path)
